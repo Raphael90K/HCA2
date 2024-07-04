@@ -2,6 +2,7 @@ import wave
 import numpy as np
 import argparse
 from scipy.fft import fft
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def read_wave_file(filename):
@@ -20,23 +21,33 @@ def read_wave_file(filename):
         return sample_rate, audio_data
 
 
-def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
+def process_block(audio_data, start_index, block_size):
+    end_index = start_index + block_size
+    block = audio_data[start_index:end_index]
+    windowed_block = block * np.hanning(block_size)
+    fft_result = fft(windowed_block)
+    amplitudes = np.abs(fft_result)[:block_size // 2]
+    return amplitudes
+
+
+def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold, max_workers=4):
     num_samples = len(audio_data)
     freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
 
     amplitude_sums = np.zeros(block_size // 2)
-    num_blocks = 0
+    futures = []
 
-    start_index = 0
-    while start_index + block_size <= num_samples:
-        end_index = start_index + block_size
-        block = audio_data[start_index:end_index]
-        windowed_block = block * np.hanning(block_size)
-        fft_result = fft(windowed_block)
-        amplitudes = np.abs(fft_result)[:block_size // 2]
-        amplitude_sums += amplitudes
-        num_blocks += 1
-        start_index += offset
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        start_index = 0
+        while start_index + block_size <= num_samples:
+            futures.append(executor.submit(process_block, audio_data, start_index, block_size))
+            start_index += offset
+
+        num_blocks = 0
+        for future in as_completed(futures):
+            amplitudes = future.result()
+            amplitude_sums += amplitudes
+            num_blocks += 1
 
     amplitude_means = amplitude_sums / num_blocks
 
@@ -51,11 +62,12 @@ def main():
     parser.add_argument('block_size', type=int, help='Block size (between 64 and 512)')
     parser.add_argument('offset', type=int, help='Offset between blocks (between 1 and block size)')
     parser.add_argument('threshold', type=float, help='Threshold for amplitude mean')
+    parser.add_argument('--max_workers', type=int, default=4, help='Maximum number of parallel workers (default: 4)')
 
     args = parser.parse_args()
 
     sample_rate, audio_data = read_wave_file(args.filename)
-    analyze_frequency_blocks(audio_data, sample_rate, args.block_size, args.offset, args.threshold)
+    analyze_frequency_blocks(audio_data, sample_rate, args.block_size, args.offset, args.threshold, args.max_workers)
 
 
 if __name__ == '__main__':
