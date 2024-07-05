@@ -7,7 +7,7 @@ from tensor import Tensor
 
 fn main():
     var tensor = Tensor[DType.float32](10,10)
-    print(tensor.shape())
+
     for i in range(10):
         print(tensor[i])
 
