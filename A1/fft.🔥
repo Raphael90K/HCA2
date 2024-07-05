@@ -3,19 +3,13 @@ from tensor import Tensor, TensorShape
 from collections import List
 from collections import InlinedFixedVector
 import math
+from tensor import Tensor
 
 fn main():
-    var height = 1
-    var length = 8
-    var channels = 1
-    var list = List[ComplexFloat64]()
-    list.append(ComplexFloat64(10,0))
-    list.append(ComplexFloat64(1,0))
-    list.append(ComplexFloat64(5,0))
-    list.append(ComplexFloat64(17,0))
-    var fftlist: List[ComplexFloat64] = fft(list)
-    for i in range(list.size):
-        print(fftlist[i])
+    var tensor = Tensor[DType.float32](10,10)
+    print(tensor.shape())
+    for i in range(10):
+        print(tensor[i])
 
 fn fft(x: List[ComplexFloat64]) -> List[ComplexFloat64]:
 

@@ -1,23 +1,6 @@
-import wave
 import numpy as np
 import argparse
 from scipy.fft import fft
-
-
-def read_wave_file(filename):
-    with wave.open(filename, 'rb') as wav_file:
-        sample_rate = wav_file.getframerate()
-        num_frames = wav_file.getnframes()
-        num_channels = wav_file.getnchannels()
-        audio_data = wav_file.readframes(num_frames)
-
-        if num_channels == 1:
-            audio_data = np.frombuffer(audio_data, dtype=np.int16)
-        else:
-            audio_data = np.frombuffer(audio_data, dtype=np.int16).reshape(-1, num_channels)
-            audio_data = audio_data[:, 0]
-
-        return sample_rate, audio_data
 
 
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
@@ -46,6 +29,7 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
 
 
 def main():
+    from readwav import read_wave_file
     parser = argparse.ArgumentParser(description='Analyze WAV file for frequency components using FFT.')
     parser.add_argument('filename', type=str, help='Path to the WAV file')
     parser.add_argument('block_size', type=int, help='Block size (between 64 and 512)')

@@ -1,0 +1,10 @@
+from fft import fft
+from python import Python
+
+
+fn main() raises:
+    Python.add_to_path("A1")
+    var read_wave_file = Python.import_module("readwav")
+    var output = read_wave_file.read_wave_file("./Audios/output.wav")
+    var sample_rate = output[0]
+    var data = output[1]
