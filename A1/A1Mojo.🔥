@@ -1,0 +1,60 @@
+from python import Python, PythonObject
+from fft import fft
+from tensor import Tensor
+from amplitude import amplitude
+from complex import ComplexFloat64
+
+
+def analyze_frequency_blocks(
+    audio_data: List[ComplexFloat64],
+    sample_rate: Float64,
+    block_size: Int32,
+    offset: Int32,
+    threshold,
+    amplitude: amplitude,
+):
+    var np = Python.import_module("numpy")
+    var num_samples = len(audio_data)
+    var freq_bins = np.fft.fftfreq(
+        PythonObject(block_size), PythonObject(1 / sample_rate)
+    )
+
+    var num_blocks: Int32 = 0
+    var start_index: Int32 = 0
+
+    while start_index + block_size <= num_samples:
+        var end_index = start_index + block_size
+        var block = get_audio_block(audio_data, start_index, end_index)
+        var fft_result = fft(block)
+        start_index += offset
+
+
+def ndarray_to_complexlist(input: PythonObject) -> List[ComplexFloat64]:
+    var py = Python.import_module("builtins")
+    var input_length: Float64 = int(len(input))
+    print(input_length)
+    var output: List[ComplexFloat64] = List[ComplexFloat64]()
+    for i in range[Float64](input_length):
+        output.append(ComplexFloat64(input[i].to_float64(), 0))
+    return output
+
+
+fn main() raises:
+    Python.add_to_path("./A1")
+    var py = Python.import_module("builtins")
+    var read_wave_file = Python.import_module("readwav")
+    var input = read_wave_file.read_wave_file("./Audios/output.wav")
+    var sample_rate = input[0].to_float64()
+    var data_input = input[1]
+    var data: List[ComplexFloat64] = ndarray_to_complexlist(data_input)
+    var amp = amplitude(256 // 2)
+    analyze_frequency_blocks(data, sample_rate, 256, 10, 10000, amp)
+
+
+fn get_audio_block(
+    data: List[ComplexFloat64], start: Int32, end: Int32
+) -> List[ComplexFloat64]:
+    var result = List[ComplexFloat64]()
+    for i in range(start, end):
+        result.append(data[i])
+    return result
