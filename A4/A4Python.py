@@ -1,9 +1,10 @@
 import argparse
+from benchmark import timeit
 
 import cupy as cp
 import numpy as np
 
-
+@timeit
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
     num_samples = len(audio_data)
     freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
