@@ -2,14 +2,11 @@ import argparse
 
 import cupy as cp
 import numpy as np
-import pycuda.driver as cuda
-import pycuda.autoinit
 
 from A1.readwav import read_wave_file
 from benchmark import timeit
 
 
-@timeit
 def sliding_window_fft_batch(data, window_size, offset, batch_size):
     data = cp.asarray(data)
     n_windows = (len(data) - window_size) // offset + 1
