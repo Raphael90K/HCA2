@@ -3,16 +3,16 @@ from fft import fft
 from tensor import Tensor
 from amplitude import amplitude
 from complex import ComplexFloat64
+from time import now
 
 
-def analyze_frequency_blocks(
+fn analyze_frequency_blocks(
     audio_data: List[ComplexFloat64],
     sample_rate: Float64,
     block_size: Int32,
     offset: Int32,
-    threshold,
-    amplitude: amplitude,
-):
+    inout amplitude: amplitude,
+) raises -> Int32:
     var np = Python.import_module("numpy")
     var num_samples = len(audio_data)
     var freq_bins = np.fft.fftfreq(
@@ -27,12 +27,15 @@ def analyze_frequency_blocks(
         var block = get_audio_block(audio_data, start_index, end_index)
         var fft_result = fft(block)
         start_index += offset
+        amplitude.add_amplitudes(fft_result)
+        num_blocks += 1
+
+    return num_blocks
 
 
 def ndarray_to_complexlist(input: PythonObject) -> List[ComplexFloat64]:
     var py = Python.import_module("builtins")
     var input_length: Float64 = int(len(input))
-    print(input_length)
     var output: List[ComplexFloat64] = List[ComplexFloat64]()
     for i in range[Float64](input_length):
         output.append(ComplexFloat64(input[i].to_float64(), 0))
@@ -40,15 +43,23 @@ def ndarray_to_complexlist(input: PythonObject) -> List[ComplexFloat64]:
 
 
 fn main() raises:
-    Python.add_to_path("./A1")
+    Python.add_to_path(".")
     var py = Python.import_module("builtins")
+    var benchmark = Python.import_module("benchmark")
     var read_wave_file = Python.import_module("readwav")
     var input = read_wave_file.read_wave_file("./Audios/output.wav")
     var sample_rate = input[0].to_float64()
     var data_input = input[1]
     var data: List[ComplexFloat64] = ndarray_to_complexlist(data_input)
     var amp = amplitude(256 // 2)
-    analyze_frequency_blocks(data, sample_rate, 256, 10, 10000, amp)
+    var start = now()
+    var num_blocks: Int32 = analyze_frequency_blocks(
+        data, sample_rate, 256, 10, amp
+    )
+    var avg = amp.calc_avg(num_blocks)
+    var end = now()
+    print(avg)
+    print((end-start) / 1_000_000_000)
 
 
 fn get_audio_block(

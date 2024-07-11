@@ -22,16 +22,13 @@ struct amplitude(Stringable):
         return s
 
     fn add_amplitudes(inout self, fft_result: List[ComplexFloat64]):
-        print(len(fft_result))
-        print(self.sums.shape())
         for i in range(self.size):
             if i >= len(fft_result):
                 break
-            print(fft_result[i])
             self.sums[i] += fft_result[i].norm()
 
     fn calc_avg(inout self, num_blocks: Int32) -> Tensor[DType.float64]:
         var blocks = num_blocks.cast[DType.float64]()
         for i in range(self.size):
-            self.sums[i] /= blocks
+            self.avg_amp[i] = self.sums[i] / blocks
         return self.avg_amp

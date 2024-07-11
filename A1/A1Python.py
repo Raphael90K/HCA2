@@ -1,6 +1,13 @@
+import os
+import sys
+
 import numpy as np
 import argparse
 from scipy.fft import fft
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from readwav import read_wave_file
+from benchmark import timeit
 
 
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):

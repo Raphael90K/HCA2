@@ -1,31 +1,36 @@
 import argparse
+import os
+import sys
 
 import cupy as cp
 import numpy as np
 
-from A1.readwav import read_wave_file
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from readwav import read_wave_file
 from benchmark import timeit
 
-
+@timeit
 def sliding_window_fft_batch(data, window_size, offset, batch_size):
-    data = cp.asarray(data)
+    data = cp.asarray(data, dtype=cp.float64)
     n_windows = (len(data) - window_size) // offset + 1
     sum_abs_fft_results = cp.zeros(window_size // 2)
 
     for batch_start in range(0, n_windows, batch_size):
         batch_end = min(batch_start + batch_size, n_windows)
+
         # Calculate start and end indices for the current batch
         start = batch_start * offset
-        end = start + window_size
+        end = start + (batch_end - batch_start) * offset + window_size
 
         # Ensure end doesn't go beyond the data length
-        if end > len(data):
-            break  # No more valid windows
+        end = min(end, len(data))
 
         # Create strided view of the data for the current batch
         batch_windows = cp.lib.stride_tricks.as_strided(data[start:end],
                                                         shape=(batch_end - batch_start, window_size),
                                                         strides=(offset * data.itemsize, data.itemsize))
+
+        # Perform FFT on the windowed data
         batch_fft_results = cp.fft.fft(batch_windows, axis=1)
         abs_fft_results = cp.abs(batch_fft_results)
 
