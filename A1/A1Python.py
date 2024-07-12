@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from readwav import read_wave_file
 from benchmark import timeit
 
-
+@timeit
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
     num_samples = len(audio_data)
     freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
@@ -21,8 +21,7 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
     while start_index + block_size <= num_samples:
         end_index = start_index + block_size
         block = audio_data[start_index:end_index]
-        windowed_block = block * np.hanning(block_size)
-        fft_result = fft(windowed_block)
+        fft_result = fft(block)
         amplitudes = np.abs(fft_result)[:block_size // 2]
         amplitude_sums += amplitudes
         num_blocks += 1
