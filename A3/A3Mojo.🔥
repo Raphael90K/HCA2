@@ -6,6 +6,7 @@ from complex import ComplexFloat64
 from time import now
 from tensor import TensorShape
 from algorithm import parallelize
+from os import Atomic
 
 
 struct amplitude(Stringable):
@@ -21,8 +22,10 @@ struct amplitude(Stringable):
     var num_samples: Int32
 
     var freq_bins: PythonObject
+    var lock: PythonObject
 
-    fn __init__(inout self, owned audio_data: List[ComplexFloat64], sample_rate: Float64, block_size: Int32, offset: Int32):
+    fn __init__(inout self, owned audio_data: List[ComplexFloat64], sample_rate: Float64, block_size: Int32, offset: Int32) raises:
+        var threading = Python.import_module("multiprocessing")
         self.block_size = block_size
         self.size = (self.block_size // 2)
 
@@ -38,8 +41,7 @@ struct amplitude(Stringable):
         self.num_samples = len(self.audio_data)
         self.num_blocks = int((self.num_samples - self.block_size) / offset)
         self.freq_bins = PythonObject()
-
-        print(self.num_blocks)
+        self.lock = threading.Lock()
 
     fn __str__(self) -> String:
         var s: String = "["
@@ -64,6 +66,7 @@ struct amplitude(Stringable):
             var fft_result = fft(block)
             self.add_amplitudes(fft_result)
             
+            
         parallelize[calc_loop](self.num_blocks)
 
     fn get_frequencies(inout self) raises:
@@ -85,10 +88,12 @@ struct amplitude(Stringable):
         return result
 
     fn add_amplitudes(inout self, fft_result: List[ComplexFloat64]):
+        
         for i in range(self.size):
             if i >= len(fft_result):
                 break
             self.sums[i] += fft_result[i].norm()
+           
     
 fn ndarray_to_complexlist(input: PythonObject) raises -> List[ComplexFloat64]:
     var input_length: Float64 = int(len(input))
@@ -114,4 +119,4 @@ fn main() raises:
     amp.calc_avg()
     amp.apply_threshold(1000000)
     var end = now()
-    print((end - start) / 1_000_000_000)
+    print("Dauer (sek): ", (end - start) / 1_000_000_000)
