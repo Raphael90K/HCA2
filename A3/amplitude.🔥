@@ -1,0 +1,34 @@
+from python import Python
+from tensor import Tensor
+from complex import ComplexFloat64
+
+
+struct amplitude(Stringable):
+    var sums: Tensor[DType.float64]
+    var size: Int
+    var avg_amp: Tensor[DType.float64]
+
+    fn __init__(inout self, length: Int):
+        self.sums = Tensor[DType.float64](length)
+        self.size = length
+        self.avg_amp = Tensor[DType.float64](length)
+
+    fn __str__(self) -> String:
+        var s: String = "["
+        for i in range(self.size):
+            s += String(self.sums[i])
+            s += ","
+        s += "]"
+        return s
+
+    fn add_amplitudes(inout self, fft_result: List[ComplexFloat64]):
+        for i in range(self.size):
+            if i >= len(fft_result):
+                break
+            self.sums[i] += fft_result[i].norm()
+
+    fn calc_avg(inout self, num_blocks: Int32) -> Tensor[DType.float64]:
+        var blocks = num_blocks.cast[DType.float64]()
+        for i in range(self.size):
+            self.avg_amp[i] = self.sums[i] / blocks
+        return self.avg_amp
