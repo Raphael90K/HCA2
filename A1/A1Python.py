@@ -1,6 +1,5 @@
 import numpy as np
 import argparse
-from scipy.fft import fft
 from utils.utils import read_wave_file
 from time import time
 
@@ -16,7 +15,7 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
     while start_index + block_size <= num_samples:
         end_index = start_index + block_size
         block = audio_data[start_index:end_index]
-        fft_result = fft(block)
+        fft_result = np.fft.fft(block)
         amplitudes = np.abs(fft_result)[:block_size // 2]
         amplitude_sums += amplitudes
         num_blocks += 1
