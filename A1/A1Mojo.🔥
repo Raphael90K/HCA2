@@ -1,6 +1,6 @@
 from python import Python, PythonObject
 import sys
-from fft import fft
+from A1.fft import fft
 from tensor import Tensor
 from complex import ComplexFloat64
 from time import now
@@ -135,7 +135,6 @@ fn initiate() raises -> Tuple[StringRef, Int32, Int32, Int32, Int, Float64, Pyth
     var data = input[1]
 
     return filename, block_size, offset, threshold, batch_size, sample_rate, data
-
 
 ##Freq:  0.0  :  1653013.3187315746
 ##Freq:  344.53125  :  1028409.9946478169

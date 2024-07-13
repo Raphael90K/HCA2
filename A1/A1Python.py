@@ -28,11 +28,13 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
         if amp > threshold:
             print(f'Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}')
 
+
 def calculate(audio_data, sample_rate, block_size, offset, threshold):
     start = time()
     analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold)
     end = time()
     return end - start
+
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze WAV file for frequency components using FFT.')

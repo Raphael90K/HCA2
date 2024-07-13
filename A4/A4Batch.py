@@ -1,11 +1,8 @@
 import argparse
-import os
-import sys
 
 import cupy as cp
 import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.utils import read_wave_file
 from time import time
 
@@ -51,7 +48,7 @@ def get_frequency(amplitude_means, block_size, sample_rate, threshold):
             print(f'Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}')
 
 
-def calculate(audio_data, block_size, sample_rate, threshold, offset, batch_size):
+def calculate(audio_data, sample_rate, block_size, offset, threshold, batch_size = 55296):
     start = time()
     sum_abs_fft_results = sliding_window_fft_batch(audio_data, block_size, offset, batch_size)
     get_frequency(sum_abs_fft_results, block_size, sample_rate, threshold)
@@ -70,7 +67,7 @@ def main():
     args = parser.parse_args()
 
     sample_rate, audio_data = read_wave_file(args.filename)
-    duration = calculate(audio_data, args.block_size, sample_rate, args.threshold, args.offset, args.batch_size)
+    duration = calculate(audio_data, sample_rate, args.block_size, args.offset, args.threshold, args.batch_size)
 
     print('Sekunden: ', duration)
 

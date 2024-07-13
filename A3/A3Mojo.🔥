@@ -1,6 +1,6 @@
 from python import Python, PythonObject
 import sys
-from fft import fft
+from A3.fft import fft
 from tensor import Tensor
 from complex import ComplexFloat64
 from time import now
