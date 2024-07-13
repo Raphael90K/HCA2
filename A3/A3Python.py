@@ -35,8 +35,10 @@ class ParallelFft:
 
     def analyze_frequency_blocks(self):
         result_list = Manager().list()
-        # Startindex für jeden Worker
+
+        # Anzahl der Worker
         num_cores = min(self.max_workers, cpu_count())
+        print("Cores used:", num_cores)
 
         # Erstelle und starte die Worker
         processes = []
@@ -51,37 +53,48 @@ class ParallelFft:
 
         # Sammle die Ergebnisse von der Queue
         num_blocks = 0
-        print(result_list)
         for res in result_list:
             self.sums += res[0]
             num_blocks += res[1]
 
-        # Berechnung des Durchschnitts der Amplituden
         self.avg_amp = self.sums / num_blocks
 
         # Ausgabe der relevanten Frequenzen und ihrer Amplitudenmittelwerte
         for freq, amp in zip(self.freq_bins[:self.block_size // 2], self.avg_amp):
             if amp > self.threshold:
-                print(f"Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}")
+                print(f'Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}')
+
+
+def calculate(audio_data, sample_rate, block_size, offset, threshold, max_workers=32):
+    start = time()
+
+    parallel_fft = ParallelFft(audio_data, sample_rate, block_size, offset, threshold, max_workers)
+    parallel_fft.analyze_frequency_blocks()
+    end = time()
+    return end - start
 
 
 def main():
     parser = argparse.ArgumentParser(description='Analyze WAV file for frequency components using FFT.')
     parser.add_argument('filename', type=str, help='Path to the WAV file')
-    parser.add_argument('block_size', type=int, help='Block size (between 64 and 512)')
+    parser.add_argument('block_size', type=int, help='Block size (base 2)')
     parser.add_argument('offset', type=int, help='Offset between blocks (between 1 and block size)')
     parser.add_argument('threshold', type=float, help='Threshold for amplitude mean')
     parser.add_argument('--max_workers', type=int, default=32, help='Maximum number of parallel workers (default: 32)')
 
     args = parser.parse_args()
-
-    start = time()
     sample_rate, audio_data = read_wave_file(args.filename)
-    parallel_fft = ParallelFft(audio_data, sample_rate, args.block_size, args.offset, args.threshold, args.max_workers)
-    parallel_fft.analyze_frequency_blocks()
-    end = time()
-    print("Sekunden: ", end - start)
+    duration = calculate(audio_data, sample_rate, args.block_size, args.offset, args.threshold, args.max_workers)
+
+    print("Sekunden: ", duration)
 
 
 if __name__ == '__main__':
     main()
+
+'''
+Frequency: 0.00 Hz, Amplitude: 1639327.60
+Frequency: 344.53 Hz, Amplitude: 1029413.04
+Frequency: 4134.38 Hz, Amplitude: 1105564.89
+Sekunden:  7.808187246322632
+'''
