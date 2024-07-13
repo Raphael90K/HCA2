@@ -1,4 +1,5 @@
 import wave
+
 import numpy as np
 
 
@@ -16,3 +17,4 @@ def read_wave_file(filename):
             audio_data = audio_data[:, 0]
 
         return sample_rate, audio_data
+
