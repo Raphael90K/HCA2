@@ -6,8 +6,7 @@ import argparse
 from scipy.fft import fft
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from readwav import read_wave_file
-from benchmark import timeit
+from excluded.benchmark import timeit
 
 @timeit
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
@@ -35,7 +34,7 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
 
 
 def main():
-    from readwav import read_wave_file
+    from utils.readwav import read_wave_file
     parser = argparse.ArgumentParser(description='Analyze WAV file for frequency components using FFT.')
     parser.add_argument('filename', type=str, help='Path to the WAV file')
     parser.add_argument('block_size', type=int, help='Block size (between 64 and 512)')

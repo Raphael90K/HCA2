@@ -6,8 +6,8 @@ import cupy as cp
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from readwav import read_wave_file
-from benchmark import timeit
+from utils.readwav import read_wave_file
+from excluded.benchmark import timeit
 
 @timeit
 def sliding_window_fft_batch(data, window_size, offset, batch_size):

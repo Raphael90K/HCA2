@@ -4,7 +4,7 @@ import numpy as np
 import cupy as cp
 
 from A1.readwav import read_wave_file
-from benchmark import timeit
+from excluded.benchmark import timeit
 
 
 @timeit
