@@ -49,7 +49,7 @@ struct amplitude(Stringable):
         for i in range(self.size):
             self.avg_amp[i] = self.sums[i] / blocks
 
-    @parameter
+
     fn analyze_frequency_blocks(inout self) raises:
 
         var start_index: Int32 = 0
@@ -91,13 +91,13 @@ fn apply_threshold(threshold: Int32, amp: amplitude, freq_bins: PythonObject) ra
 
 
 fn main() raises:
-    Python.add_to_path(".")
-    var read_wave_file = Python.import_module("readwav")
+    Python.add_to_path("./utils/")
+    var read_wave_file = Python.import_module("utils")
     var input = read_wave_file.read_wave_file("./Audios/output.wav")
     var sample_rate = input[0].to_float64()
     var data_input = input[1]
     var data: List[ComplexFloat64] = ndarray_to_complexlist(data_input)
-    var amp = amplitude(256 // 2,data, sample_rate, 256, 10)
+    var amp = amplitude(256 // 2,data, sample_rate, 256, 1)
 
     var start = now()
     amp.analyze_frequency_blocks()

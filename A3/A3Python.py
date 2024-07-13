@@ -1,7 +1,9 @@
 import numpy as np
 import argparse
-from multiprocessing import Pool, cpu_count
-from utils.readwav import read_wave_file  # Annahme: Diese Funktion liest die WAV-Datei ein
+from multiprocessing import Process, Manager, cpu_count
+from utils.utils import read_wave_file
+
+from time import time
 
 
 class ParallelFft:
@@ -16,41 +18,49 @@ class ParallelFft:
         self.num_samples = len(self.audio_data)
         self.avg_amp = None
         self.freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
-        self.num_blocks = int((self.num_samples - self.block_size) / self.offset)
 
         self.sums = np.zeros(self.block_size // 2)
 
-    def process_block(self, blocknum):
-        start_index = blocknum * self.offset
-        end_index = start_index + self.block_size
-        block = self.audio_data[start_index:end_index]
-        fft_result = np.fft.fft(block)
-        amplitudes = np.abs(fft_result)[:self.block_size // 2]
-
-        return amplitudes
-
-    def process_result(self, amp):
-        print(amp)
+    def worker_task(self, start_index, step, result_queue):
+        local_sum = np.zeros(self.block_size // 2)
+        blocks = 0
+        for i in range(start_index, len(self.audio_data) - self.block_size, step):
+            if i + self.block_size >= len(self.audio_data):
+                break
+            segment = self.audio_data[i:i + self.block_size]
+            fft_result = np.fft.fft(segment)
+            local_sum += np.abs(fft_result)[:len(segment) // 2]
+            blocks += 1
+        result_queue.append((local_sum, blocks))
 
     def analyze_frequency_blocks(self):
-        print(f"Total number of blocks: {self.num_blocks}")
-
-        # Pool von Prozessen erstellen (Anzahl der Kerne verwenden)
+        result_list = Manager().list()
+        # Startindex für jeden Worker
         num_cores = min(self.max_workers, cpu_count())
-        print(num_cores)
 
-        with Pool(processes=num_cores) as pool:
-            result = pool.map_async(self.process_block, range(self.num_blocks))
+        # Erstelle und starte die Worker
+        processes = []
+        for start in range(num_cores):
+            p = Process(target=self.worker_task, args=(start, num_cores * self.offset, result_list))
+            processes.append(p)
+            p.start()
 
-        print(result.get())
-        self.sums += np.sum(result, axis=0)
-        print(self.sums)
+        # Warte darauf, dass alle Worker fertig sind
+        for p in processes:
+            p.join()
+
+        # Sammle die Ergebnisse von der Queue
+        num_blocks = 0
+        print(result_list)
+        for res in result_list:
+            self.sums += res[0]
+            num_blocks += res[1]
 
         # Berechnung des Durchschnitts der Amplituden
-        avg_amp = self.sums / self.num_blocks
+        self.avg_amp = self.sums / num_blocks
 
         # Ausgabe der relevanten Frequenzen und ihrer Amplitudenmittelwerte
-        for freq, amp in zip(self.freq_bins[:self.block_size // 2], avg_amp):
+        for freq, amp in zip(self.freq_bins[:self.block_size // 2], self.avg_amp):
             if amp > self.threshold:
                 print(f"Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}")
 
@@ -65,9 +75,12 @@ def main():
 
     args = parser.parse_args()
 
+    start = time()
     sample_rate, audio_data = read_wave_file(args.filename)
     parallel_fft = ParallelFft(audio_data, sample_rate, args.block_size, args.offset, args.threshold, args.max_workers)
     parallel_fft.analyze_frequency_blocks()
+    end = time()
+    print("Sekunden: ", end - start)
 
 
 if __name__ == '__main__':

@@ -65,7 +65,7 @@ struct ParallelFft(Stringable):
             self.add_amplitudes(fft_result)
             
             
-        parallelize[calc_loop](self.num_blocks)
+        parallelize[calc_loop](self.num_blocks, 32)
 
     fn get_frequencies(inout self) raises:
         var np = Python.import_module("numpy")
@@ -104,12 +104,12 @@ fn ndarray_to_complexlist(input: PythonObject) raises -> List[ComplexFloat64]:
 fn main() raises:
     Python.add_to_path("./utils/")
 
-    var read_wave_file = Python.import_module("readwav")
+    var read_wave_file = Python.import_module("utils")
     var input = read_wave_file.read_wave_file("./Audios/output.wav")
     var sample_rate = input[0].to_float64()
     var data_input = input[1]
     var data: List[ComplexFloat64] = ndarray_to_complexlist(data_input)
-    var amp = ParallelFft(data^, sample_rate, 256, 10)
+    var amp = ParallelFft(data^, sample_rate, 2048, 1)
 
     var start = now()
     amp.analyze_frequency_blocks()

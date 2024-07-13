@@ -1,14 +1,10 @@
-import os
-import sys
-
 import numpy as np
 import argparse
 from scipy.fft import fft
+from utils.utils import read_wave_file
+from time import time
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from excluded.benchmark import timeit
 
-@timeit
 def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, threshold):
     num_samples = len(audio_data)
     freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
@@ -34,7 +30,6 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
 
 
 def main():
-    from utils.readwav import read_wave_file
     parser = argparse.ArgumentParser(description='Analyze WAV file for frequency components using FFT.')
     parser.add_argument('filename', type=str, help='Path to the WAV file')
     parser.add_argument('block_size', type=int, help='Block size (between 64 and 512)')
@@ -42,9 +37,11 @@ def main():
     parser.add_argument('threshold', type=float, help='Threshold for amplitude mean')
 
     args = parser.parse_args()
-
+    start = time()
     sample_rate, audio_data = read_wave_file(args.filename)
     analyze_frequency_blocks(audio_data, sample_rate, args.block_size, args.offset, args.threshold)
+    end = time()
+    print("Sekunden: ", (end - start))
 
 
 if __name__ == '__main__':

@@ -6,10 +6,9 @@ import cupy as cp
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.readwav import read_wave_file
-from excluded.benchmark import timeit
+from utils.utils import read_wave_file
+from time import time
 
-@timeit
 def sliding_window_fft_batch(data, window_size, offset, batch_size):
     data = cp.asarray(data, dtype=cp.float64)
     n_windows = (len(data) - window_size) // offset + 1
@@ -62,8 +61,11 @@ def main():
     args = parser.parse_args()
 
     sample_rate, audio_data = read_wave_file(args.filename)
+    start = time()
     sum_abs_fft_results = sliding_window_fft_batch(audio_data, args.block_size, args.offset, args.batch_size)
     get_frequency(sum_abs_fft_results, args.block_size, sample_rate, args.threshold)
+    end = time()
+    print("Sekunden: ", end - start)
 
 
 if __name__ == '__main__':
