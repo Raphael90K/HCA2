@@ -1,0 +1,43 @@
+from complex import ComplexFloat64
+from tensor import Tensor, TensorShape
+from collections import List
+from collections import InlinedFixedVector
+import math
+from tensor import Tensor
+
+
+fn fft(x: List[ComplexFloat64]) -> List[ComplexFloat64]:
+
+    var N: Int = x.size
+    if N <= 1:
+        return x
+
+    var even: List[ComplexFloat64] = fft(x[0::2])
+    var odd: List[ComplexFloat64] = fft(x[1::2])
+
+    var T: List[ComplexFloat64] = List[ComplexFloat64]()
+    for k in range(N // 2):
+        T.append(complex_exp(complex_divide(ComplexFloat64(0,-2)*ComplexFloat64(3.141592653589793,0)*ComplexFloat64(k, 0),ComplexFloat64(N,0))) * odd[k])
+
+    var result: List[ComplexFloat64] = List[ComplexFloat64]()
+    for k in range(N // 2):
+        result.append(even[k] + T[k])
+    for k in range(N // 2):
+        result.append(even[k] + -T[k])
+
+    return result
+
+fn complex_divide(a: ComplexFloat64, b: ComplexFloat64) -> ComplexFloat64:
+    var conjugate_b = ComplexFloat64(b.re, -b.im)
+    var numerator = a * conjugate_b
+    var denominator = b.re * b.re + b.im * b.im
+    return ComplexFloat64(numerator.re / denominator, numerator.im / denominator)
+
+fn complex_exp(z: ComplexFloat64) -> ComplexFloat64:
+    var exp_real = math.exp(z.re)  
+    var cos_imag = math.cos(z.im) 
+    var sin_imag = math.sin(z.im)
+    
+    return ComplexFloat64(exp_real * cos_imag, exp_real * sin_imag)
+
+
