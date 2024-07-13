@@ -100,21 +100,52 @@ fn ndarray_to_complexlist(input: PythonObject) raises -> List[ComplexFloat64]:
         output.append(ComplexFloat64(input[i].to_float64(), 0))
     return output
 
-
-fn main() raises:
-    Python.add_to_path("./utils/")
-
-    var read_wave_file = Python.import_module("utils")
-    var input = read_wave_file.read_wave_file("./Audios/output.wav")
-    var sample_rate = input[0].to_float64()
-    var data_input = input[1]
-    var data: List[ComplexFloat64] = ndarray_to_complexlist(data_input)
-    var amp = ParallelFft(data^, sample_rate, 2048, 1)
-
+fn calculate(inout amp: ParallelFft, threshold: Int32) raises -> Float64:
     var start = now()
     amp.analyze_frequency_blocks()
     amp.get_frequencies()
     amp.calc_avg()
-    amp.apply_threshold(1000000)
+    amp.apply_threshold(threshold)
     var end = now()
-    print("Dauer (sek): ", (end - start) / 1_000_000_000)
+    return (end - start) / 1_000_000_000
+
+fn main() raises:
+    var init = initiate()
+    var filename = str(init[0])
+    var block_size = init[1]
+    var offset = init[2]
+    var threshold = init[3]
+    var batch_size = init[4]
+    var sample_rate = init[5]
+    var audio_input = init[6]
+    var audio_data = ndarray_to_complexlist(audio_input)
+    
+
+    # Timer starten und Laufzeit messen
+    var amp = ParallelFft(audio_data^, sample_rate, block_size, offset)
+    var duration = calculate(amp, threshold)
+    print("Sekunden: ", duration)
+
+fn initiate() raises -> Tuple[StringRef, Int32, Int32, Int32, Int, Float64, PythonObject]:
+    Python.add_to_path("./utils/")
+    var builtins = Python.import_module("builtins")
+    var readwav = Python.import_module("utils")
+    var args = sys.argv()
+    if len(args) < 5:
+        print("input needed: filename block_size offset threshold [batch_size]")
+        sys.exit()
+
+    var filename = args[1]
+    var block_size = Int32(atol(args[2]))
+    var offset = Int32(atol(args[3]))
+    var threshold = Int32(atol(args[4]))
+    var batch_size = int(55296)
+    if len(args) == 6:
+        batch_size = int(args[5])
+
+    var input = readwav.read_wave_file(filename)
+    var sample_rate = input[0].to_float64()
+    var data = input[1]
+
+    return filename, block_size, offset, threshold, batch_size, sample_rate, data
+
