@@ -22,7 +22,7 @@ def sliding_window_fft_batch(data, window_size, offset, batch_size):
         end = start + (batch_end - batch_start) * offset + window_size
         end = min(end, len(data))
 
-        # Erstellt die view auch das aktuelle Fenster
+        # Erstellt die View auf das aktuelle Fenster
         batch_windows = cp.lib.stride_tricks.as_strided(data[start:end],
                                                         shape=(batch_end - batch_start, window_size),
                                                         strides=(offset * data.itemsize, data.itemsize))
@@ -40,15 +40,15 @@ def sliding_window_fft_batch(data, window_size, offset, batch_size):
 
 
 def get_frequency(amplitude_means, block_size, sample_rate, threshold):
-    # Get frequency bins
+    # Berechne Frequenzen
     freq_bins = np.fft.fftfreq(block_size, 1 / sample_rate)
-    # Print frequencies with amplitudes above threshold
+    # Ausgabe der Frequenzen, die den Threshold übersteigen
     for freq, amp in zip(freq_bins[:block_size // 2], amplitude_means):
         if amp > threshold:
             print(f'Frequency: {freq:.2f} Hz, Amplitude: {amp:.2f}')
 
 
-def calculate(audio_data, sample_rate, block_size, offset, threshold, batch_size = 55296):
+def calculate(audio_data, sample_rate, block_size, offset, threshold, batch_size=55296):
     start = time()
     sum_abs_fft_results = sliding_window_fft_batch(audio_data, block_size, offset, batch_size)
     get_frequency(sum_abs_fft_results, block_size, sample_rate, threshold)
@@ -74,9 +74,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-'''
- Frequency: 0.00 Hz, Amplitude: 1641160.11
-Frequency: 344.53 Hz, Amplitude: 1029072.78
-Frequency: 4134.38 Hz, Amplitude: 1105567.05
-Sekunden:  0.5999321937561035'''

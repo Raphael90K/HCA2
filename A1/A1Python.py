@@ -12,6 +12,8 @@ def analyze_frequency_blocks(audio_data, sample_rate, block_size, offset, thresh
     num_blocks = 0
 
     start_index = 0
+
+    # Analysiert die Blöcke sequenziell in einer Schleife.
     while start_index + block_size <= num_samples:
         end_index = start_index + block_size
         block = audio_data[start_index:end_index]

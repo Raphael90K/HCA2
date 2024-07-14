@@ -5,7 +5,6 @@ from collections import InlinedFixedVector
 import math
 from tensor import Tensor
 
-
 fn fft(x: List[ComplexFloat64]) -> List[ComplexFloat64]:
 
     var N: Int = x.size

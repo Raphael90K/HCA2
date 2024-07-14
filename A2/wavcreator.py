@@ -16,7 +16,7 @@ def generate_wave_file(filename, duration, sample_rate, freq_amp_pairs):
     if max_amp > 0:
         wave_data /= max_amp
 
-    # Konvertiere Wellenform in 16-Bit PCM-Format
+    # Konvertiert Welle in 16-Bit PCM-Format
     wave_data = np.int16(wave_data * 32767)
 
     with wave.open(filename, 'w') as wav_file:

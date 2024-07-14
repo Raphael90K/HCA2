@@ -6,7 +6,11 @@ from complex import ComplexFloat64
 from time import now
 from tensor import TensorShape
 
+
 struct amplitude(Stringable):
+    '''
+    Struct um die benötigten Daten zu bündeln.
+    '''
     var sums: Tensor[DType.float64]
     var size: Int
     var avg_amp: Tensor[DType.float64]
@@ -39,6 +43,9 @@ struct amplitude(Stringable):
         return s
 
     fn add_amplitudes(inout self, fft_result: List[ComplexFloat64]):
+        '''
+        Addiert die Ergebnisse der Blöcke auf.
+        '''
         for i in range(self.size):
             if i >= len(fft_result):
                 break
@@ -135,8 +142,3 @@ fn initiate() raises -> Tuple[StringRef, Int32, Int32, Int32, Int, Float64, Pyth
     var data = input[1]
 
     return filename, block_size, offset, threshold, batch_size, sample_rate, data
-
-##Freq:  0.0  :  1653013.3187315746
-##Freq:  344.53125  :  1028409.9946478169
-##Freq:  4134.375  :  1105446.8880711871
-##2.5636866450000002

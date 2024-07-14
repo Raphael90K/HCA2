@@ -22,6 +22,10 @@ class ParallelFft:
         self.sums = np.zeros(self.block_size // 2)
 
     def worker_task(self, start_index, step, result_queue):
+        '''
+        Berechnet die FFT Blöcke pro Worker lokal. Hierdurch wird bei N-Workern nur N lokale Summen benötigt.
+        Die Zwischenwerte werden nicht bis zum Abschluss aller Worker behalten.
+        '''
         local_sum = np.zeros(self.block_size // 2)
         blocks = 0
         for i in range(start_index, len(self.audio_data) - self.block_size, step):
@@ -36,7 +40,7 @@ class ParallelFft:
     def analyze_frequency_blocks(self):
         result_list = Manager().list()
 
-        # Anzahl der Worker
+        # Anzahl der Cores, als Anzahl Worker verwendet
         num_cores = min(self.max_workers, cpu_count())
         print("Cores used:", num_cores)
 

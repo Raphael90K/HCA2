@@ -55,7 +55,9 @@ struct ParallelFft(Stringable):
             self.avg_amp[i] = self.sums[i] / blocks
 
     fn analyze_frequency_blocks(inout self) raises:
-
+        '''
+        Analysiert die Blöcke. Die Funktion calc_loop wird in parallelize mit den Argumenten [0, ..., N-1] aufgerufen.
+        '''
         @parameter
         fn calc_loop(block_num: Int):
             var start_index = block_num * self.offset
