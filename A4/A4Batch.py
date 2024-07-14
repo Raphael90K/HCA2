@@ -16,24 +16,19 @@ def sliding_window_fft_batch(data, window_size, offset, batch_size):
 
     for batch_start in range(0, n_windows, batch_size):
         batch_end = min(batch_start + batch_size, n_windows)
-
         # Berechne start und ende des aktuellen batches
         start = batch_start * offset
         end = start + (batch_end - batch_start) * offset + window_size
         end = min(end, len(data))
-
         # Erstellt die View auf das aktuelle Fenster
         batch_windows = cp.lib.stride_tricks.as_strided(data[start:end],
                                                         shape=(batch_end - batch_start, window_size),
                                                         strides=(offset * data.itemsize, data.itemsize))
-
         # FFT berechnen
         batch_fft_results = cp.fft.fft(batch_windows, axis=1)
         abs_fft_results = cp.abs(batch_fft_results)
-
         # Sum results across all windows in the batch
         sum_abs_fft_results += cp.sum(abs_fft_results[:, :window_size // 2], axis=0)
-
     avg_fft_results = sum_abs_fft_results / n_windows
 
     return avg_fft_results.get()

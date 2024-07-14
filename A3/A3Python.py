@@ -23,7 +23,7 @@ class ParallelFft:
 
     def worker_task(self, start_index, step, result_queue):
         '''
-        Berechnet die FFT Blöcke pro Worker lokal. Hierdurch wird bei N-Workern nur N lokale Summen benötigt.
+        Berechnet die FFT Blöcke pro Worker lokal. Hierdurch werden für N-Workern nur N lokale Summen benötigt.
         Die Zwischenwerte werden nicht bis zum Abschluss aller Worker behalten.
         '''
         local_sum = np.zeros(self.block_size // 2)
